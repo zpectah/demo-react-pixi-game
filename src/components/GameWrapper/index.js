@@ -25,7 +25,8 @@ const GameWrapper = (props) => {
 	const [ay, setAy] = useState(0);
 	const [avx, setAvx] = useState(0);
 	const [avy, setAvy] = useState(0);
-	// const [walker, setWalker] = useState(null);
+
+	const [score, setScore] = useState(0);
 
 	const pixi = props.context.pixi;
 	const pixiApp = new pixi.Application(Options);
@@ -62,15 +63,29 @@ const GameWrapper = (props) => {
 		walker_left = new pixi.AnimatedSprite.fromFrames(walkLeft);
 		walker = walker_right || walker_left;
 
-		pixiApp.stage.addChild(walker);
-
 		walker.vx = avx;
 		walker.vy = avy;
 		walker.animationSpeed = 0.35;
 
 		st = play;
 
+		let msg_title_style = new pixi.TextStyle({
+			fontFamily: "Arial",
+			fontSize: 36,
+			fill: "white",
+			stroke: '#ff3300',
+			strokeThickness: 4,
+			dropShadow: true,
+			dropShadowColor: "#000000",
+			dropShadowBlur: 4,
+			dropShadowAngle: Math.PI / 6,
+			dropShadowDistance: 6,
+		});
+		let msg_title = new pixi.Text(`Score: ${score}`, msg_title_style);
+
+		pixiApp.stage.addChild(walker);
 		pixiApp.ticker.add(delta => gameLoop(delta));
+		pixiApp.stage.addChild(msg_title);
 
 		let left = keyboard("ArrowLeft"),
 				up = keyboard("ArrowUp"),
@@ -149,6 +164,8 @@ const GameWrapper = (props) => {
 			walker.play(walker_left);
 			walker.vx = -5;
 			walker.vy = 0;
+
+
 
 		}
 		left.release = () => {
