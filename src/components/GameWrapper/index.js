@@ -20,6 +20,13 @@ const GameWrapper = (props) => {
 		init: false,
 		loadingProgress: 0,
 	});
+
+	const [ax, setAx] = useState(0);
+	const [ay, setAy] = useState(0);
+	const [avx, setAvx] = useState(0);
+	const [avy, setAvy] = useState(0);
+	// const [walker, setWalker] = useState(null);
+
 	const pixi = props.context.pixi;
 	const pixiApp = new pixi.Application(Options);
 	const walkRight = [
@@ -39,7 +46,7 @@ const GameWrapper = (props) => {
 		'./walk-left_06.png'
 	];
 
-	let walker, st;
+	let walker, st, walker_left, walker_right;
 
 
 	pixiApp.loader
@@ -51,26 +58,26 @@ const GameWrapper = (props) => {
 	useEffect(() => onResize(), []);
 
 	const onLoad = (loader, resources) => {
-		walker = new pixi.AnimatedSprite.fromFrames(walkRight);
+		walker_right = new pixi.AnimatedSprite.fromFrames(walkRight);
+		walker_left = new pixi.AnimatedSprite.fromFrames(walkLeft);
+		walker = walker_right || walker_left;
 
-		// walker.animationSpeed = 0.35;
-		// walker.position.set(0, 0);
-		// walker.updateAnchor = true;
-		// walker.play();
 		pixiApp.stage.addChild(walker);
 
-		walker.vx = 0;
-		walker.vy = 0;
+		walker.vx = avx;
+		walker.vy = avy;
+		walker.animationSpeed = 0.35;
 
 		st = play;
 
 		pixiApp.ticker.add(delta => gameLoop(delta));
 
 		let left = keyboard("ArrowLeft"),
-			up = keyboard("ArrowUp"),
-			right = keyboard("ArrowRight"),
-			down = keyboard("ArrowDown");
+				up = keyboard("ArrowUp"),
+				right = keyboard("ArrowRight"),
+				down = keyboard("ArrowDown");
 
+		// UP
 		up.press = () => {
 
 			console.log('Up pressed');
@@ -89,28 +96,7 @@ const GameWrapper = (props) => {
 
 		}
 
-		right.press = () => {
-
-			console.log('Right pressed');
-
-			walker.play();
-			walker.animationSpeed = 0.35;
-			walker.vx = 5;
-			walker.vy = 0;
-
-		}
-		right.release = () => {
-
-			console.log('Right released');
-
-			walker.stop();
-
-			if (!left.isDown && walker.vy === 0) {
-				walker.vx = 0;
-			}
-
-		}
-
+		// DOWN
 		down.press = () => {
 
 			console.log('Down pressed');
@@ -129,17 +115,46 @@ const GameWrapper = (props) => {
 
 		}
 
-		left.press = () => {
+		// RIGHT
+		right.press = () => {
+			console.log('Right pressed');
 
+			// walker = walker_right;
+
+			st = play;
+			walker.play(walker_right);
+			walker.vx = 5;
+			walker.vy = 0;
+
+
+		}
+		right.release = () => {
+			console.log('Right released');
+
+			walker.stop(walker_right);
+
+			if (!left.isDown && walker.vy === 0) {
+				walker.vx = 0;
+			}
+
+		}
+
+		// LEFT
+		left.press = () => {
 			console.log('Left pressed');
 
+			// walker = walker_left;
+
+			st = play;
+			walker.play(walker_left);
 			walker.vx = -5;
 			walker.vy = 0;
 
 		}
 		left.release = () => {
-
 			console.log('Left released');
+
+			walker.stop(walker_left);
 
 			if (!right.isDown && walker.vy === 0) {
 				walker.vx = 0;
