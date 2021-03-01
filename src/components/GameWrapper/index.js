@@ -46,6 +46,8 @@ const GameWrapper = (props) => {
 	const onLoad = (loader, resources) => {
 		createPlayerInstance(loader, resources);
 
+		pixiApp.ticker.add(gameLoop);
+
 		window.addEventListener("keydown", keysDown);
 		window.addEventListener("keyup", keysUp);
 	};
@@ -63,11 +65,8 @@ const GameWrapper = (props) => {
 	}
 
 	function gameLoop() {
-		// console.log(keys);
-
 		// W or arrow top
 		if (keys['87'] || keys['38']) {
-
 			if (!player.playing) {
 				player.textures = playerSheet.walk_back;
 				player.play();
@@ -78,7 +77,6 @@ const GameWrapper = (props) => {
 
 		// A or arrow left
 		if (keys['65'] || keys['37']) {
-
 			if (!player.playing) {
 				player.textures = playerSheet.walk_left;
 				player.play();
@@ -89,7 +87,6 @@ const GameWrapper = (props) => {
 
 		// S or arrow down
 		if (keys['83'] || keys['40']) {
-
 			if (!player.playing) {
 				player.textures = playerSheet.walk_front;
 				player.play();
@@ -100,7 +97,6 @@ const GameWrapper = (props) => {
 
 		// D or arrow right
 		if (keys['68'] || keys['39']) {
-
 			if (!player.playing) {
 				player.textures = playerSheet.walk_right;
 				player.play();
@@ -109,33 +105,35 @@ const GameWrapper = (props) => {
 			player.x += 5;
 		}
 
-
+		// If player collision with the chest
 		if (collisionRectangle(player, chest)) {
 			chest.textures = chestSheet.open;
+			playerUI.text = `Score: ${playerState.score + 100}`;
 		}
 
 	}
 
 	function createPlayerInstance(loader, resources) {
+		// UI
 		createPlayerUI();
 
+		// Environment
 		createEnvironmentSheet();
 		createStageEnvironment();
 
+		// Player
 		createPlayerSheet();
 		createPlayer();
-
-		pixiApp.ticker.add(gameLoop);
 	}
 
 	function createStageEnvironment() {
 		chest = new pixi.AnimatedSprite(chestSheet.closed);
 		chest.anchor.set(0.5);
 		chest.loop = false;
+		chest.animationSpeed = 0;
 		chest.x = pixiApp.view.width / 3;
 		chest.y = pixiApp.view.height / 3;
 		pixiApp.stage.addChild(chest);
-		chest.play();
 	}
 
 	function createPlayerUI() {
