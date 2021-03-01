@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 
 import { withPixi } from '../../Pixi.provider';
-import keyboard from '../../utils/keyboard';
+import collisionRectangle from '../../utils/collisionRectangle';
 
 const GameWrapper = (props) => {
 	const parent = useRef();
@@ -9,7 +9,7 @@ const GameWrapper = (props) => {
 		canvasWidth = 500,
 		canvasHeight = 500
 	} = props;
-	const Options = {
+	const AppOptions = {
 		width: canvasWidth,
 		height: canvasHeight,
 		antialias: true,
@@ -18,179 +18,173 @@ const GameWrapper = (props) => {
 	};
 	const [state, setState] = useState({
 		init: false,
-		loadingProgress: 0,
 	});
-
-	const [ax, setAx] = useState(0);
-	const [ay, setAy] = useState(0);
-	const [avx, setAvx] = useState(0);
-	const [avy, setAvy] = useState(0);
-
-	const [score, setScore] = useState(0);
-
 	const pixi = props.context.pixi;
-	const pixiApp = new pixi.Application(Options);
-	const walkRight = [
-		'./walk-right_01.png',
-		'./walk-right_02.png',
-		'./walk-right_03.png',
-		'./walk-right_04.png',
-		'./walk-right_05.png',
-		'./walk-right_06.png'
-	];
-	const walkLeft = [
-		'./walk-left_01.png',
-		'./walk-left_02.png',
-		'./walk-left_03.png',
-		'./walk-left_04.png',
-		'./walk-left_05.png',
-		'./walk-left_06.png'
-	];
+	const pixiApp = new pixi.Application(AppOptions);
 
-	let walker, st, walker_left, walker_right;
+	// Pixi instance variables
+	let keys = {},
+		playerSheet = {},
+		player,
+		playerUI,
+		score = 0;
 
-
+	// Pixi loader
 	pixiApp.loader
-		.add(walkRight)
-		.add(walkLeft)
+		.add('player', './player.0.sprite.png')
 		.load((loader, resources) => onLoad(loader, resources));
 
 	useEffect(() => onInit(), []);
 	useEffect(() => onResize(), []);
 
 	const onLoad = (loader, resources) => {
-		walker_right = new pixi.AnimatedSprite.fromFrames(walkRight);
-		walker_left = new pixi.AnimatedSprite.fromFrames(walkLeft);
-		walker = walker_right || walker_left;
+		createPlayerInstance(loader, resources);
 
-		walker.vx = avx;
-		walker.vy = avy;
-		walker.animationSpeed = 0.35;
-
-		st = play;
-
-		let msg_title_style = new pixi.TextStyle({
-			fontFamily: "Arial",
-			fontSize: 36,
-			fill: "white",
-			stroke: '#ff3300',
-			strokeThickness: 4,
-			dropShadow: true,
-			dropShadowColor: "#000000",
-			dropShadowBlur: 4,
-			dropShadowAngle: Math.PI / 6,
-			dropShadowDistance: 6,
-		});
-		let msg_title = new pixi.Text(`Score: ${score}`, msg_title_style);
-
-		pixiApp.stage.addChild(walker);
-		pixiApp.ticker.add(delta => gameLoop(delta));
-		pixiApp.stage.addChild(msg_title);
-
-		let left = keyboard("ArrowLeft"),
-				up = keyboard("ArrowUp"),
-				right = keyboard("ArrowRight"),
-				down = keyboard("ArrowDown");
-
-		// UP
-		up.press = () => {
-
-			console.log('Up pressed');
-
-			walker.vy = -5;
-			walker.vx = 0;
-
-		}
-		up.release = () => {
-
-			console.log('Up released');
-
-			if (!down.isDown && walker.vx === 0) {
-				walker.vy = 0;
-			}
-
-		}
-
-		// DOWN
-		down.press = () => {
-
-			console.log('Down pressed');
-
-			walker.vy = 5;
-			walker.vx = 0;
-
-		}
-		down.release = () => {
-
-			console.log('Down released');
-
-			if (!up.isDown && walker.vx === 0) {
-				walker.vy = 0;
-			}
-
-		}
-
-		// RIGHT
-		right.press = () => {
-			console.log('Right pressed');
-
-			// walker = walker_right;
-
-			st = play;
-			walker.play(walker_right);
-			walker.vx = 5;
-			walker.vy = 0;
-
-
-		}
-		right.release = () => {
-			console.log('Right released');
-
-			walker.stop(walker_right);
-
-			if (!left.isDown && walker.vy === 0) {
-				walker.vx = 0;
-			}
-
-		}
-
-		// LEFT
-		left.press = () => {
-			console.log('Left pressed');
-
-			// walker = walker_left;
-
-			st = play;
-			walker.play(walker_left);
-			walker.vx = -5;
-			walker.vy = 0;
-
-
-
-		}
-		left.release = () => {
-			console.log('Left released');
-
-			walker.stop(walker_left);
-
-			if (!right.isDown && walker.vy === 0) {
-				walker.vx = 0;
-			}
-
-		}
-
+		window.addEventListener("keydown", keysDown);
+		window.addEventListener("keyup", keysUp);
 	};
 
-	function gameLoop(delta) {
-		// walker.x = (walker.x + 5*delta) % (pixiApp.renderer.width - (102 / 2));
-		st(delta);
+	function keysDown(e) {
+		e.preventDefault();
+
+		keys[e.keyCode] = true;
 	}
 
-	function play(delta) {
+	function keysUp(e) {
+		e.preventDefault();
 
-		//Use the cat's velocity to make it move
-		walker.x += walker.vx;
-		walker.y += walker.vy
+		keys[e.keyCode] = false;
+	}
+
+	function gameLoop() {
+		// console.log(keys);
+
+		// W or arrow top
+		if (keys['87'] || keys['38']) {
+
+			if (!player.playing) {
+				player.textures = playerSheet.walk_back;
+				player.play();
+			}
+
+			player.y -= 5;
+		}
+
+		// A or arrow left
+		if (keys['65'] || keys['37']) {
+
+			if (!player.playing) {
+				player.textures = playerSheet.walk_left;
+				player.play();
+			}
+
+			player.x -= 5;
+		}
+
+		// S or arrow down
+		if (keys['83'] || keys['40']) {
+
+			if (!player.playing) {
+				player.textures = playerSheet.walk_front;
+				player.play();
+			}
+
+			player.y += 5;
+		}
+
+		// D or arrow right
+		if (keys['68'] || keys['39']) {
+
+			if (!player.playing) {
+				player.textures = playerSheet.walk_right;
+				player.play();
+			}
+
+			player.x += 5;
+		}
+
+	}
+
+	// const collisionTrigger = () => {
+	// 	console.log('Collision');
+	// };
+
+	function createPlayerUI(loader, resources) {
+		let msg_title_style = new pixi.TextStyle({
+			fontFamily: "Arial",
+			fontSize: 24,
+			fill: '#eeeeee',
+		});
+		playerUI = new pixi.Text(`Score: ${score}`, msg_title_style);
+
+		pixiApp.stage.addChild(playerUI);
+	}
+
+	function createPlayerInstance(loader, resources) {
+		createPlayerSheet();
+		createPlayer();
+		createPlayerUI(loader, resources);
+
+		pixiApp.ticker.add(gameLoop);
+	}
+
+	function createPlayerSheet() {
+		const sSheet = new pixi.BaseTexture.from(pixiApp.loader.resources['player'].url);
+
+		// Rectangle size
+		// Dimension of part of animation in sprite
+		let w = 125;
+		let h = 187;
+
+		playerSheet['stand_front'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 0, w, h))
+		];
+		playerSheet['stand_back'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 1 * h, w, h))
+		];
+		playerSheet['stand_left'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 2 * h, w, h))
+		];
+		playerSheet['stand_right'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(1 * w, 3 * h, w, h))
+		];
+
+		playerSheet['walk_front'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 0 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(1 * w, 0 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(2 * w, 0 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(3 * w, 0 * h, w, h))
+		];
+		playerSheet['walk_back'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 1 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(1 * w, 1 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(2 * w, 1 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(3 * w, 1 * h, w, h))
+		];
+		playerSheet['walk_left'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 2 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(1 * w, 2 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(2 * w, 2 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(3 * w, 2 * h, w, h))
+		];
+		playerSheet['walk_right'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 3 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(1 * w, 3 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(2 * w, 3 * h, w, h)),
+			new pixi.Texture(sSheet, new pixi.Rectangle(3 * w, 3 * h, w, h))
+		];
+
+	}
+
+	function createPlayer() {
+		player = new pixi.AnimatedSprite(playerSheet.stand_front);
+		player.anchor.set(0.5);
+		player.animationSpeed = 0.125;
+		player.loop = false;
+		player.x = pixiApp.view.width / 2;
+		player.y = pixiApp.view.height / 2;
+		pixiApp.stage.addChild(player);
+		player.play();
 	}
 
 	const onInit = () => {
