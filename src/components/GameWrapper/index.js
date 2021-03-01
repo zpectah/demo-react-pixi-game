@@ -19,19 +19,25 @@ const GameWrapper = (props) => {
 	const [state, setState] = useState({
 		init: false,
 	});
+	const [playerState, setPlayerState] = useState({
+		score: 0
+	});
+
 	const pixi = props.context.pixi;
 	const pixiApp = new pixi.Application(AppOptions);
 
 	// Pixi instance variables
 	let keys = {},
-		playerSheet = {},
 		player,
+		playerSheet = {},
 		playerUI,
-		score = 0;
+		chest,
+		chestSheet = {};
 
 	// Pixi loader
 	pixiApp.loader
 		.add('player', './player.0.sprite.png')
+		.add('chest', './chest.sprite.png')
 		.load((loader, resources) => onLoad(loader, resources));
 
 	useEffect(() => onInit(), []);
@@ -103,29 +109,61 @@ const GameWrapper = (props) => {
 			player.x += 5;
 		}
 
+
+		if (collisionRectangle(player, chest)) {
+			chest.textures = chestSheet.open;
+		}
+
 	}
 
-	// const collisionTrigger = () => {
-	// 	console.log('Collision');
-	// };
+	function createPlayerInstance(loader, resources) {
+		createPlayerUI();
 
-	function createPlayerUI(loader, resources) {
+		createEnvironmentSheet();
+		createStageEnvironment();
+
+		createPlayerSheet();
+		createPlayer();
+
+		pixiApp.ticker.add(gameLoop);
+	}
+
+	function createStageEnvironment() {
+		chest = new pixi.AnimatedSprite(chestSheet.closed);
+		chest.anchor.set(0.5);
+		chest.loop = false;
+		chest.x = pixiApp.view.width / 3;
+		chest.y = pixiApp.view.height / 3;
+		pixiApp.stage.addChild(chest);
+		chest.play();
+	}
+
+	function createPlayerUI() {
 		let msg_title_style = new pixi.TextStyle({
 			fontFamily: "Arial",
 			fontSize: 24,
 			fill: '#eeeeee',
 		});
-		playerUI = new pixi.Text(`Score: ${score}`, msg_title_style);
+		playerUI = new pixi.Text(`Score: ${playerState.score}`, msg_title_style);
 
 		pixiApp.stage.addChild(playerUI);
 	}
 
-	function createPlayerInstance(loader, resources) {
-		createPlayerSheet();
-		createPlayer();
-		createPlayerUI(loader, resources);
+	function createEnvironmentSheet() {
+		const sSheet = new pixi.BaseTexture.from(pixiApp.loader.resources['chest'].url);
 
-		pixiApp.ticker.add(gameLoop);
+		// Rectangle size
+		// Dimension of part of animation in sprite
+		let w = 100;
+		let h = 100;
+
+		chestSheet['open'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(0 * w, 0, w, h))
+		];
+		chestSheet['closed'] = [
+			new pixi.Texture(sSheet, new pixi.Rectangle(1 * w, 0, w, h))
+		];
+
 	}
 
 	function createPlayerSheet() {
