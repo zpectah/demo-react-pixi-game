@@ -7,8 +7,8 @@ const App = () => {
 
 	return (
 		<Router>
-			<div>
-				<aside>
+			<div className="app-wrapper">
+				<aside className="app-sidebar">
 					<div>
 						<ul>
 							<li>
@@ -24,17 +24,29 @@ const App = () => {
 						</ul>
 					</div>
 				</aside>
-				<main>
-
+				<main className="app-content">
 					<Switch>
 
 						<Route path={'/demo1'} component={Demo1} />
 
 						<Route path={'/'} exact>
-							<div>
+							<div className="app-content-block">
 								<h1>
 									Game dev demos
 								</h1>
+								<div>
+									Demo 1 - Sprite animations, Animations changes on movement, Collision detection
+									<br />
+									Demo 2 - Limiting game playable area
+									<br />
+									Demo 3 - Change stage during play
+									<br />
+									<br />
+									Pong - Game demo
+									<br />
+									Space Invaders - Game demo
+									<br />
+								</div>
 							</div>
 						</Route>
 

@@ -6,8 +6,8 @@ import collisionRectangle from '../../utils/collisionRectangle';
 const Demo1 = (props) => {
 	const parent = useRef();
 	const {
-		canvasWidth = 500,
-		canvasHeight = 500
+		canvasWidth = 900,
+		canvasHeight = 900
 	} = props;
 	const AppOptions = {
 		width: canvasWidth,
@@ -41,7 +41,7 @@ const Demo1 = (props) => {
 		.load((loader, resources) => onLoad(loader, resources));
 
 	useEffect(() => onInit(), []);
-	useEffect(() => onResize(), []);
+	// useEffect(() => onResize(), []);
 
 	const onLoad = (loader, resources) => {
 		createPlayerInstance(loader, resources);
@@ -131,8 +131,8 @@ const Demo1 = (props) => {
 		chest.anchor.set(0.5);
 		chest.loop = false;
 		chest.animationSpeed = 0;
-		chest.x = pixiApp.view.width / 1.5;
-		chest.y = pixiApp.view.height / 1.5;
+		chest.x = pixiApp.view.width - 100;
+		chest.y = pixiApp.view.height - 100;
 		pixiApp.stage.addChild(chest);
 	}
 
@@ -229,7 +229,7 @@ const Demo1 = (props) => {
 		el.appendChild(pixiApp.view);
 		setState({ ...state, init: true });
 
-		resizeCanvasHandler();
+		// resizeCanvasHandler();
 
 		return () => {
 			el.innerHTML = '';
@@ -237,15 +237,15 @@ const Demo1 = (props) => {
 		}
 	};
 
-	const onResize = () => {
-		window.addEventListener('resize', resizeCanvasHandler);
+	// const onResize = () => {
+	// 	window.addEventListener('resize', resizeCanvasHandler);
+	//
+	// 	return () => {
+	// 		window.removeEventListener('resize', resizeCanvasHandler);
+	// 	}
+	// };
 
-		return () => {
-			window.removeEventListener('resize', resizeCanvasHandler);
-		}
-	};
-
-	const resizeCanvasHandler = () => pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
+	// const resizeCanvasHandler = () => pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
 
 	return (
 		<div className={[state.init ? 'is-init' : ''].join(' ')}>
