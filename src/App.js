@@ -2,6 +2,7 @@ import React from 'react';
 import { Switch, BrowserRouter as Router, Route, Link } from 'react-router-dom';
 
 import Demo1 from './components/Demo1';
+import Demo2 from './components/Demo2';
 
 const App = () => {
 
@@ -21,6 +22,11 @@ const App = () => {
 									Demo 1
 								</Link>
 							</li>
+							<li>
+								<Link to={'/demo2'}>
+									Demo 2
+								</Link>
+							</li>
 						</ul>
 					</div>
 				</aside>
@@ -28,6 +34,7 @@ const App = () => {
 					<Switch>
 
 						<Route path={'/demo1'} component={Demo1} />
+						<Route path={'/demo2'} component={Demo2} />
 
 						<Route path={'/'} exact>
 							<div className="app-content-block">
