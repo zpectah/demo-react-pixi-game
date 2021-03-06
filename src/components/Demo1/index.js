@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { withPixi } from '../../Pixi.provider';
 import collisionRectangle from '../../utils/collisionRectangle';
 
-const GameWrapper = (props) => {
+const Demo1 = (props) => {
 	const parent = useRef();
 	const {
 		canvasWidth = 500,
@@ -36,8 +36,8 @@ const GameWrapper = (props) => {
 
 	// Pixi loader
 	pixiApp.loader
-		.add('player', './player.0.sprite.png')
-		.add('chest', './chest.sprite.png')
+		.add('player', './images/player.0.sprite.png')
+		.add('chest', './images/chest.sprite.png')
 		.load((loader, resources) => onLoad(loader, resources));
 
 	useEffect(() => onInit(), []);
@@ -131,8 +131,8 @@ const GameWrapper = (props) => {
 		chest.anchor.set(0.5);
 		chest.loop = false;
 		chest.animationSpeed = 0;
-		chest.x = pixiApp.view.width / 3;
-		chest.y = pixiApp.view.height / 3;
+		chest.x = pixiApp.view.width / 1.5;
+		chest.y = pixiApp.view.height / 1.5;
 		pixiApp.stage.addChild(chest);
 	}
 
@@ -255,4 +255,4 @@ const GameWrapper = (props) => {
 	);
 };
 
-export default withPixi(GameWrapper);
+export default withPixi(Demo1);
